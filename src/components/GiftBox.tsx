@@ -14,7 +14,7 @@ export const GiftBox: React.FC<GiftBoxProps> = ({ isOpened, onOpen, gift, isReve
   return (
     <div className="relative flex flex-col items-center">
       <div
-        className={`relative w-32 h-32 cursor-pointer transform transition-all duration-500 ${
+        className={`relative w-24 h-24 md:w-32 md:h-32 cursor-pointer transform transition-all duration-500 ${
           isHovered && !isOpened ? 'scale-110' : 'scale-100'
         } ${isRevealing ? 'animate-pulse' : ''} md:w-32 md:h-32 w-14 h-14`}
         onClick={!isOpened && !isRevealing ? onOpen : undefined}

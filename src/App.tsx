@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { Gift, GameState } from './types';
+import { useState } from 'react';
+import { GameState } from './types';
 import { selectRandomGift } from './utils';
 import { GiftBox } from './components/GiftBox';
 import { ResultsScreen } from './components/ResultsScreen';
+import { useFix100vh } from './hooks/useFix100vh';
 
 function App() {
+  useFix100vh();
   const [gameState, setGameState] = useState<GameState>({
     openedBoxes: 0,
     revealedGifts: [],
@@ -12,7 +14,7 @@ function App() {
     currentlyOpening: false
   });
 
-  const handleBoxOpen = (boxIndex: number) => {
+  const handleBoxOpen = (_boxIndex: number) => {
     if (gameState.currentlyOpening || gameState.openedBoxes >= 3) return;
 
     setGameState(prev => ({ ...prev, currentlyOpening: true }));
@@ -42,11 +44,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden"
-         style={{
-           background: 'radial-gradient(ellipse at center, rgba(139, 69, 19, 0.3) 0%, rgba(25, 25, 112, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%)'
-         }}>
-      
+    <div className="relative overflow-hidden" style={{ height: 'calc(var(--vh) * 100)', background: 'radial-gradient(ellipse at center, rgba(139, 69, 19, 0.3) 0%, rgba(25, 25, 112, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%)' }}>      
       {/* Polaroid background photos */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Photo 1 - Top left */}
@@ -123,7 +121,7 @@ function App() {
         ))}
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex flex-col justify-center">
+      <div className="relative z-10 h-[100vh] container mx-auto px-4 py-8 flex flex-col justify-center">
         {!gameState.isGameComplete ? (
           <div className="text-center space-y-6 md:space-y-12">
             {/* Header */}
