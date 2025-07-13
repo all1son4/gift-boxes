@@ -86,8 +86,8 @@ export const GiftBox: React.FC<GiftBoxProps> = ({ isOpened, onOpen, gift, isReve
 
       {/* Gift Name */}
       {isOpened && gift && (
-        <div className="mt-2 md:mt-3 text-center transform transition-all duration-700 delay-300 px-1">
-          <h3 className={`text-sm md:text-lg font-semibold max-w-[120px] ${
+        <div className="mt-2 md:mt-3 text-center transform transition-all duration-700 delay-300 px-1 flex flex-col items-center">
+          <h3 className={`text-sm md:text-lg font-semibold max-w-[110px] ${
             gift.rarity === 'rare' ? 'text-yellow-300' : 'text-pink-200'
           }`}>
             {gift.name}

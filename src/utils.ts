@@ -1,4 +1,7 @@
-import { Gift, GIFTS, PROBABILITIES } from './config';
+import { GIFTS, PROBABILITIES } from './config';
+import { Gift } from './types';
+
+const COOLDOWN_HOURS = 24;
 
 export const selectRandomGift = (excludeIds: string[]): Gift => {
   const availableGifts = GIFTS.filter(gift => !excludeIds.includes(gift.id));
@@ -30,4 +33,25 @@ export const selectRandomGift = (excludeIds: string[]): Gift => {
   
   // This should never happen due to the initial check
   throw new Error('No gifts available');
+};
+
+export const canOpenAgain = () => {
+  const lastOpened = localStorage.getItem('lastGiftOpenTime');
+  if (!lastOpened) return true;
+
+  const diff = Date.now() - parseInt(lastOpened, 10);
+  return diff > COOLDOWN_HOURS * 60 * 60 * 1000;
+};
+
+export const setGiftOpenTime = () => {
+  localStorage.setItem('lastGiftOpenTime', Date.now().toString());
+};
+
+export const getCooldownRemaining = () => {
+  const lastOpened = localStorage.getItem('lastGiftOpenTime');
+  if (!lastOpened) return 0;
+
+  const diff = Date.now() - parseInt(lastOpened, 10);
+  const msRemaining = COOLDOWN_HOURS * 60 * 60 * 1000 - diff;
+  return msRemaining > 0 ? msRemaining : 0;
 };

@@ -4,9 +4,10 @@ import { Gift } from '../types';
 interface ResultsScreenProps {
   gifts: Gift[];
   onRestart: () => void;
+  restartUsed: boolean;
 }
 
-export const ResultsScreen: React.FC<ResultsScreenProps> = ({ gifts, onRestart }) => {
+export const ResultsScreen: React.FC<ResultsScreenProps> = ({ gifts, onRestart, restartUsed }) => {
   const rareCount = gifts.filter(gift => gift.rarity === 'rare').length;
 
   return (
@@ -64,13 +65,16 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ gifts, onRestart }
         <p className="text-sm md:text-lg text-pink-200 px-4">
           🌟 These special gifts are waiting for you! 🌟
         </p>
-        <button
-          onClick={onRestart}
-          className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full 
-                     transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/25"
-        >
-          Open New Boxes ✨
-        </button>
+        {!restartUsed 
+          ? <button
+              onClick={onRestart}
+              className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full 
+                        transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-pink-500/25"
+            >
+              Open New Boxes ✨
+            </button> 
+          : <p className="text-sm text-pink-300">You already used your one-time restart 🌟</p>
+        }
       </div>
     </div>
   );

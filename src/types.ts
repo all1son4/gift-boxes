@@ -1,3 +1,4 @@
+
 export interface Gift {
   id: string;
   name: string;
@@ -6,9 +7,14 @@ export interface Gift {
   description?: string;
 }
 
+export interface RevealedGift {
+  boxIndex: number;
+  gift: Gift;
+}
+
 export interface GameState {
   openedBoxes: number;
-  revealedGifts: Gift[];
+  revealedGifts: RevealedGift[];
   isGameComplete: boolean;
-  currentlyOpening: boolean;
+  currentlyOpeningBoxIndex: number | null
 }

@@ -1,50 +1,90 @@
-import { useState } from 'react';
-import { GameState } from './types';
+import { useState, useEffect } from 'react';
+import { GameState} from './types';
 import { selectRandomGift } from './utils';
 import { GiftBox } from './components/GiftBox';
 import { ResultsScreen } from './components/ResultsScreen';
 import { useFix100vh } from './hooks/useFix100vh';
+import { RESTART_USED_KEY } from './config';
 
 function App() {
   useFix100vh();
+
+  const [restartUsed, setRestartUsed] = useState(false);
+
+  useEffect(() => {
+    const restartUsedRaw = localStorage.getItem(RESTART_USED_KEY);
+    const restartUsedAtRaw = localStorage.getItem('restartUsedAt');
+
+    const isUsed = restartUsedRaw === 'true';
+    const restartUsedAt = restartUsedAtRaw ? parseInt(restartUsedAtRaw, 10) : null;
+
+    if (isUsed && restartUsedAt !== null) {
+      const diff = Date.now() - restartUsedAt;
+      if (diff > 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(RESTART_USED_KEY);
+        localStorage.removeItem('restartUsedAt');
+        setRestartUsed(false);
+      } else {
+        setRestartUsed(true);
+      }
+    } else {
+      setRestartUsed(false);
+    }
+  }, []);
+
   const [gameState, setGameState] = useState<GameState>({
     openedBoxes: 0,
     revealedGifts: [],
     isGameComplete: false,
-    currentlyOpening: false
+    currentlyOpeningBoxIndex: null,
   });
 
-  const handleBoxOpen = (_boxIndex: number) => {
-    if (gameState.currentlyOpening || gameState.openedBoxes >= 3) return;
+  const handleBoxOpen = (boxIndex: number) => {
+    if (gameState.currentlyOpeningBoxIndex !== null || gameState.openedBoxes >= 3) return;
+    if (gameState.revealedGifts.find(rg => rg.boxIndex === boxIndex)) return;
 
-    setGameState(prev => ({ ...prev, currentlyOpening: true }));
+    setGameState(prev => ({ ...prev, currentlyOpeningBoxIndex: boxIndex }));
 
-    // Simulate opening animation delay
     setTimeout(() => {
-      const excludeIds = gameState.revealedGifts.map(gift => gift.id);
+      const excludeIds = gameState.revealedGifts.map(rg => rg.gift.id);
       const newGift = selectRandomGift(excludeIds);
-      
+
+      const newRevealedGifts = [...gameState.revealedGifts, { boxIndex, gift: newGift }];
+      const newOpenedBoxes = newRevealedGifts.length;
+      const isFinalBox = newOpenedBoxes >= 3;
+
       setGameState(prev => ({
         ...prev,
-        openedBoxes: prev.openedBoxes + 1,
-        revealedGifts: [...prev.revealedGifts, newGift],
-        currentlyOpening: false,
-        isGameComplete: prev.openedBoxes + 1 >= 3
+        openedBoxes: newOpenedBoxes,
+        revealedGifts: newRevealedGifts,
+        currentlyOpeningBoxIndex: null
       }));
+
+      if (isFinalBox) {
+        setTimeout(() => {
+          setGameState(prev => ({
+            ...prev,
+            isGameComplete: true
+          }));
+        }, 2000);
+      }
     }, 1000);
   };
 
   const handleRestart = () => {
+    localStorage.setItem(RESTART_USED_KEY, 'true');
+    localStorage.setItem('restartUsedAt', Date.now().toString());
+    setRestartUsed(true);
     setGameState({
       openedBoxes: 0,
       revealedGifts: [],
       isGameComplete: false,
-      currentlyOpening: false
+      currentlyOpeningBoxIndex: null
     });
   };
 
   return (
-    <div className="relative overflow-hidden" style={{ height: 'calc(var(--vh) * 100)', background: 'radial-gradient(ellipse at center, rgba(139, 69, 19, 0.3) 0%, rgba(25, 25, 112, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%)' }}>      
+    <div className="relative overflow-hidden" style={{ height: 'calc(var(--vh) * 100)', background: 'radial-gradient(ellipse at center, rgba(139, 69, 19, 0.3) 0%, rgba(25, 25, 112, 0.8) 50%, rgba(0, 0, 0, 0.9) 100%)' }}>
       {/* Polaroid background photos */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Photo 1 - Top left */}
@@ -133,31 +173,37 @@ function App() {
                 Three magical boxes await you, each containing a special surprise.
                 Choose carefully - each box holds a unique gift just for you! ✨
               </p>
-              <div className="flex justify-center space-x-2">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      i < gameState.openedBoxes
-                        ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50'
-                        : 'bg-gray-600'
-                    }`}
-                  ></div>
-                ))}
-              </div>
+            <div className="flex justify-center space-x-2">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    gameState.revealedGifts.some(rg => rg.boxIndex === i)
+                      ? 'bg-yellow-400 shadow-lg shadow-yellow-400/50'
+                      : 'bg-gray-600'
+                  }`}
+                ></div>
+              ))}
+            </div>
             </div>
 
             {/* Gift Boxes */}
             <div className="flex flex-wrap justify-center gap-4 md:gap-16">
-              {[...Array(3)].map((_, index) => (
-                <GiftBox
-                  key={index}
-                  isOpened={index < gameState.openedBoxes}
-                  onOpen={() => handleBoxOpen(index)}
-                  gift={gameState.revealedGifts[index]}
-                  isRevealing={gameState.currentlyOpening && index === gameState.openedBoxes}
-                />
-              ))}
+              {[...Array(3)].map((_, index) => {
+                const giftForBox = gameState.revealedGifts.find(rg => rg.boxIndex === index)?.gift;
+                const isOpened = !!giftForBox;
+                const isRevealing = gameState.currentlyOpeningBoxIndex === index;
+
+                return (
+                  <GiftBox
+                    key={index}
+                    isOpened={isOpened}
+                    onOpen={() => handleBoxOpen(index)}
+                    gift={giftForBox}
+                    isRevealing={isRevealing}
+                  />
+                );
+              })}
             </div>
 
             {gameState.openedBoxes > 0 && (
@@ -168,11 +214,11 @@ function App() {
             )}
           </div>
         ) : (
-          <ResultsScreen gifts={gameState.revealedGifts} onRestart={handleRestart} />
+          <ResultsScreen gifts={gameState.revealedGifts.map(rg => rg.gift)} onRestart={handleRestart} restartUsed={restartUsed}/>
         )}
       </div>
 
-      {/* Corner decoration */}
+       {/* Corner decoration */}
       <div className="absolute top-4 right-4 text-2xl opacity-50">✨</div>
       <div className="absolute bottom-4 left-4 text-2xl opacity-50">💖</div>
       <div className="absolute top-1/4 left-4 text-xl opacity-30">🌟</div>

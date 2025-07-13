@@ -11,10 +11,10 @@ export const GIFTS: Gift[] = [
   },
   {
     id: 'movie',
-    name: 'A Movie Night',
+    name: 'A Movie Evening',
     rarity: 'common',
     emoji: '🎬',
-    description: 'Cozy movie night with snacks and cuddles'
+    description: 'Cozy movie evening with snacks and cuddles'
   },
   {
     id: 'massage',
@@ -29,6 +29,13 @@ export const GIFTS: Gift[] = [
     rarity: 'common',
     emoji: '🎁',
     description: 'An extra special upgrade to your upcoming birthday gift'
+  },
+  {
+    id: 'thermo-mug',
+    name: 'Cozy Thermo Mug',
+    rarity: 'common',
+    emoji: '☕',
+    description: 'A warm and stylish thermo mug to keep your favorite drinks just right — wherever you are.'
   },
   // Rare Gifts (30% chance)
   {
@@ -65,3 +72,5 @@ export const PROBABILITIES = {
   common: 0.7,
   rare: 0.3
 };
+
+export const RESTART_USED_KEY = 'gift_game_restart_used';
